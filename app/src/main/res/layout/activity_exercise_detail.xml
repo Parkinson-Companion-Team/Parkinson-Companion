@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8FAFC"
+    android:orientation="vertical">
+
+    <!-- TOP HEADER -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="72dp"
+        android:background="#315C55"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <!-- Prominent Circular Back Button -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/edit_text_border"
+            android:backgroundTint="#477D70"
+            android:contentDescription="Back"
+            android:elevation="2dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_back_arrow" />
+
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:text="Leg Exercise"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- LARGE RECTANGULAR VIDEO THUMBNAIL AREA -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardVideoArea"
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#0F172A">
+
+                    <!-- Thumbnail Image -->
+                    <ImageView
+                        android:id="@+id/ivThumbnail"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Exercise Video Thumbnail"
+                        android:scaleType="centerCrop" />
+
+                    <!-- Loading Indicator -->
+                    <ProgressBar
+                        android:id="@+id/pbLoading"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_centerInParent="true"
+                        android:indeterminateTint="#FFFFFF" />
+
+                    <!-- Overlay Play Icon in Centre -->
+                    <ImageView
+                        android:id="@+id/ivPlayOverlay"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:layout_centerInParent="true"
+                        android:contentDescription="Play Video"
+                        android:src="@drawable/ic_play_circle"
+                        android:visibility="visible" />
+
+                    <!-- Fallback Error Layout -->
+                    <TextView
+                        android:id="@+id/tvErrorFallback"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:padding="16dp"
+                        android:text="🎥 Tap to watch video on YouTube"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- COMPLETION STATUS BUTTON -->
+            <Button
+                android:id="@+id/btnComplete"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="28dp"
+                android:backgroundTint="#315C55"
+                android:text="Mark as Completed ✔"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- BOTTOM ACTION BUTTONS (PLAY VIDEO & FAVOURITE HEART) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <!-- Large Play Button -->
+                <ImageButton
+                    android:id="@+id/btnPlayVideo"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/edit_text_border"
+                    android:backgroundTint="#FFFFFF"
+                    android:contentDescription="Play YouTube Video"
+                    android:elevation="4dp"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_play_circle" />
+
+                <!-- Large Favourite Heart Button -->
+                <ImageButton
+                    android:id="@+id/btnFavorite"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:background="@drawable/edit_text_border"
+                    android:backgroundTint="#FFFFFF"
+                    android:contentDescription="Favourite Exercise"
+                    android:elevation="4dp"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_heart_outline" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

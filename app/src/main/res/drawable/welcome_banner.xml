@@ -1,0 +1,63 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="112dp"
+    android:viewportWidth="800"
+    android:viewportHeight="450">
+
+    <!-- Sun / Hope Glow -->
+    <path
+        android:fillColor="#BAE6FD"
+        android:pathData="M400,225m-180,0a180,180 0 1,0 360,0a180,180 0 1,0 -360,0" />
+
+    <!-- Center Leader Figure (Stretching Arms Raised Up High) -->
+    <!-- Head -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M400,120m-24,0a24,24 0 1,0 48,0a24,24 0 1,0 -48,0" />
+    <!-- Body -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M375,152h50v110h-50z" />
+    <!-- Raised Left Arm -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M375,160 L320,80 L338,70 L385,152 Z" />
+    <!-- Raised Right Arm -->
+    <path
+        android:fillColor="#0284C7"
+        android:pathData="M425,160 L480,80 L462,70 L415,152 Z" />
+
+    <!-- Left Companion Figure (Stretching Arm Outwards) -->
+    <!-- Head -->
+    <path
+        android:fillColor="#475569"
+        android:pathData="M260,160m-22,0a22,22 0 1,0 44,0a22,22 0 1,0 -44,0" />
+    <!-- Body -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M238,190h44v100h-44z" />
+    <!-- Extended Arm Left -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M238,200 L140,210 L142,226 L238,216 Z" />
+
+    <!-- Right Companion Figure (Stretching Arm Outwards) -->
+    <!-- Head -->
+    <path
+        android:fillColor="#475569"
+        android:pathData="M540,160m-22,0a22,22 0 1,0 44,0a22,22 0 1,0 -44,0" />
+    <!-- Body -->
+    <path
+        android:fillColor="#0369A1"
+        android:pathData="M518,190h44v100h-44z" />
+    <!-- Extended Arm Right -->
+    <path
+        android:fillColor="#0369A1"
+        android:pathData="M562,200 L660,210 L658,226 L562,216 Z" />
+
+    <!-- Ground / Base Curve -->
+    <path
+        android:fillColor="#7DD3FC"
+        android:pathData="M0,360 Q400,320 800,360 L800,450 L0,450 Z" />
+
+</vector>

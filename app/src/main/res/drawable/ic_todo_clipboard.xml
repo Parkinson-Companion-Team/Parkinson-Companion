@@ -1,0 +1,114 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="240">
+
+    <!-- Circle background in light green -->
+    <path
+        android:fillColor="#DAEBCB"
+        android:pathData="M100,10 C155.23,10 200,54.77 200,110 C200,165.23 155.23,210 100,210 C44.77,210 0,165.23 0,110 C0,54.77 44.77,10 100,10 Z" />
+
+    <!-- Clipboard Body (Light Blue/Purple) -->
+    <path
+        android:fillColor="#D8E2FF"
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="3.5"
+        android:pathData="M52,58 L148,58 C153.5,58 158,62.5 158,68 L158,198 C158,203.5 153.5,208 148,208 L52,208 C46.5,208 42,203.5 42,198 L42,68 C42,62.5 46.5,58 52,58 Z" />
+
+    <!-- Clip (Top Gold) -->
+    <path
+        android:fillColor="#F8A72B"
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="3.5"
+        android:pathData="M78,54 L122,54 C125,54 127,52 127,49 L127,45 C127,40 122,35 116,35 L84,35 C78,35 73,40 73,45 L73,49 C73,52 75,54 78,54 Z" />
+
+    <!-- Clip Hole -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="2.5"
+        android:pathData="M100,43 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+
+    <!-- TO DO Header text paths -->
+    <!-- T -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M66,75 L80,75 M73,75 L73,92" />
+    <!-- O -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:pathData="M85,83.5 m-5.5,0 a5.5,7.5 0 1,0 11,0 a5.5,7.5 0 1,0 -11,0" />
+    <!-- D -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M104,75 L111,75 C116,75 119,78 119,83.5 C119,89 116,92 111,92 L104,92 Z" />
+    <!-- O -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:pathData="M125,83.5 m-5.5,0 a5.5,7.5 0 1,0 11,0 a5.5,7.5 0 1,0 -11,0" />
+
+    <!-- Checkmarks & Lines -->
+    <!-- Line 1 Check -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M58,112 L64,118 L76,104" />
+    <!-- Line 1 Task -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M86,112 L142,112" />
+
+    <!-- Line 2 Check -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M58,136 L64,142 L76,128" />
+    <!-- Line 2 Task -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M86,136 L142,136" />
+
+    <!-- Line 3 Check -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M58,160 L64,166 L76,152" />
+    <!-- Line 3 Task -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M86,160 L142,160" />
+
+    <!-- Line 4 Check -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M58,184 L64,190 L76,176" />
+    <!-- Line 4 Task -->
+    <path
+        android:strokeColor="#1A1A1A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M86,184 L142,184" />
+
+</vector>

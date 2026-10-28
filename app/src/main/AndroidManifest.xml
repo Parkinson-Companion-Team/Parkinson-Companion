@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/pdf" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="image/*" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.Parkicompanion">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
+
+        <activity
+            android:name=".dashboard.FeatureDashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".exercise.ui.ExerciseActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".exercise.ui.ExerciseDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".exercise.ui.LovedVideosActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".exercise.ui.ExerciseAlarmActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".exercise.ui.ExerciseAlarmRingingActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true" />
+
+        <receiver
+            android:name=".exercise.receiver.ExerciseAlarmReceiver"
+            android:exported="false" />
+
+        <activity
+            android:name=".personalize.PersonalizeCareActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".diet.ui.DietTrackerActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".diet.ui.DietDashboardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".diet.ui.DietExerciseLogActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".diet.ui.DietStepsLogActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".diet.ui.DietFoodLogActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".diet.ui.DietFoodItemsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".assessment.AssessmentCompleteActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.SignUpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.ResetPasswordActivity"
+            android:exported="false" />
+
+        <!-- Appointment Reminder Components -->
+        <activity
+            android:name=".appointment.ui.AppointmentListActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".appointment.ui.AddEditAppointmentActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".appointment.ui.PrescriptionViewerActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".appointment.ui.AlarmActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true" />
+
+        <receiver
+            android:name=".appointment.receiver.AlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".appointment.receiver.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Medicine Reminder Components -->
+        <activity
+            android:name=".medicine.ui.MedicineListActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".medicine.ui.AddEditMedicineActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <receiver
+            android:name=".medicine.receiver.MedicineAlarmReceiver"
+            android:exported="false" />
+
+        <!-- To-Do Feature Components -->
+        <activity
+            android:name=".todo.ui.TodoSplashActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".todo.ui.TodoListActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".todo.ui.AddEditTodoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+
+        <receiver
+            android:name=".todo.receiver.TodoAlarmReceiver"
+            android:exported="false" />
+
+        <!-- FileProvider for sharing internal prescription files & PDFs -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

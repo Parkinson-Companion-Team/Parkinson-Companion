@@ -1,0 +1,13 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Parkicompanion" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">#F7F5F0</item>
+        <item name="android:colorBackground">#F7F5F0</item>
+        <item name="colorSurface">#F7F5F0</item>
+        <item name="android:textColorPrimary">#315C55</item>
+        <item name="android:textColorSecondary">#606B66</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+    </style>
+
+    <style name="Theme.Parkicompanion" parent="Base.Theme.Parkicompanion" />
+</resources>

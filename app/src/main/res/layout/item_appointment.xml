@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/edit_text_border"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- Top Row: Title, Edit, Alarm Switch, Delete -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvItemTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Therapy Consultation"
+            android:textColor="#315C55"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnItemEdit"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Edit appointment"
+            android:src="@android:drawable/ic_menu_edit" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchAlarm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:checked="true" />
+
+        <ImageButton
+            android:id="@+id/btnItemDelete"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Delete appointment"
+            android:src="@android:drawable/ic_menu_delete" />
+
+    </LinearLayout>
+
+    <!-- Date & Time -->
+    <TextView
+        android:id="@+id/tvItemDateTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="📅 12 Oct 2026 at 02:50 PM (15m before)"
+        android:textColor="#477D70"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- Doctor -->
+    <TextView
+        android:id="@+id/tvItemDoctor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="👨‍⚕️ Sunil Geura"
+        android:textColor="#244C43"
+        android:textSize="14sp" />
+
+    <!-- Location + Maps Action Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvItemLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📍 Barasat Govt Hospital"
+            android:textColor="#606B66"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnItemMap"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:backgroundTint="#DCEAF5"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="🗺️ Map"
+            android:textAllCaps="false"
+            android:textColor="#284B68"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- Phone Number + Call Action Row -->
+    <LinearLayout
+        android:id="@+id/layoutPhoneRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvItemPhone"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📞 +91 98765 43210"
+            android:textColor="#606B66"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnItemCall"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:backgroundTint="#DDECE5"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="📞 Call"
+            android:textAllCaps="false"
+            android:textColor="#244C43"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- Prescription Files Clickable Button -->
+    <TextView
+        android:id="@+id/tvItemPrescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/edit_text_border"
+        android:backgroundTint="#EDE1F3"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="8dp"
+        android:text="📄 View Uploaded Prescription / Files ↗"
+        android:textColor="#59416B"
+        android:textSize="13.5sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Notes -->
+    <TextView
+        android:id="@+id/tvItemNotes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Notes: Need not to take any pill"
+        android:textColor="#7A8580"
+        android:textSize="13sp"
+        android:textStyle="italic" />
+
+</LinearLayout>
