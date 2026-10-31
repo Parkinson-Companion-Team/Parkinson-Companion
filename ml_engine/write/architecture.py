@@ -139,16 +139,16 @@ class SiameseParkinsonNetwork(nn.Module):
         self.twin_cnn = HandwritingFeatureExtractor()
 
     def forward(self, image_yesterday, image_today):
-    batch_size = image_yesterday.size(0)
+        batch_size = image_yesterday.size(0)
     
     # Stack both images into one batch along dim=0
-    combined = torch.cat([image_yesterday, image_today], dim=0)  # (2*batch, 1, 224, 224)
+        combined = torch.cat([image_yesterday, image_today], dim=0)  # (2*batch, 1, 224, 224)
     
     # One single forward pass through the CNN instead of two
-    embeddings = self.twin_cnn(combined)  # (2*batch, 128)
+        embeddings = self.twin_cnn(combined)  # (2*batch, 128)
     
     # Split back into the two halves
-    embedding_a = embeddings[:batch_size]
-    embedding_b = embeddings[batch_size:]
+        embedding_a = embeddings[:batch_size]
+        embedding_b = embeddings[batch_size:]
     
-    return embedding_a, embedding_b
+        return embedding_a, embedding_b
