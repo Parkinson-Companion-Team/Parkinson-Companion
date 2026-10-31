@@ -56,7 +56,7 @@ Just like your AI needs .item() to return a normal number, a web server needs to
 4. Built-in Security and Error Handling
 If your PyTorch script crashes (for example, if the user uploads a corrupted image), APIView catches the error so your whole server doesn't go offline. It also allows you to easily attach authentication (checking if the doctor is logged in) with a single line of code.
 
-""""
+"""
 from rest_framework.views import APIView
 from rest_framework.response import Response
 """The Two Things it TAKES (The Inputs)
@@ -131,7 +131,7 @@ class ParkinsonTestAnalysisView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     #If a user sends us an image, use the first blueprint to build a worker. If they send us a text form, use the second blueprint.
 
-    def post(self, request, *format=None):
+    def post(self, request, format=None):
         test_type = request.data.get('test_type')
         uploaded_file = request.data.get('uploaded_file')
         
@@ -174,45 +174,46 @@ class ParkinsonTestAnalysisView(APIView):
                     "test_type": test_record.test_type,
                     "stability_score": test_record.stability_score
                 }
-            }, status=status.HTTP_201_CREATED)
+            }, 
+            status=status.HTTP_201_CREATED)
 
 
-        """1. What is e?
-        When you write except Exception as e:, Python takes the entire crash event (the line number, the memory state, the type of error) and packages it into a massive Python Object, which it names e.
+            """1. What is e?
+            When you write except Exception as e:, Python takes the entire crash event (the line number, the memory state, the type of error) and packages it into a massive Python Object, which it names e.
 
-        If you tried to send e directly over the internet like this:
+            If you tried to send e directly over the internet like this:
 
-        Python
-        # Broken! 
-        return Response({"error": e}, status=500)
-        Your server would crash again. Why? Because the Response tool is trying to convert your data into JSON so the mobile app can read it. JSON only understands basic text, numbers, and lists. It has no idea how to read a complex "Python Exception Object," so it panics and fails.
+            Python
+            # Broken! 
+            return Response({"error": e}, status=500)
+            Your server would crash again. Why? Because the Response tool is trying to convert your data into JSON so the mobile app can read it. JSON only understands basic text, numbers, and lists. It has no idea how to read a complex "Python Exception Object," so it panics and fails.
 
-        2. What str(e) does
-        str() is a built-in Python function that means "String" (text).
+            2. What str(e) does
+            str() is a built-in Python function that means "String" (text).
 
-        When you wrap the error object like this—str(e)—you are forcing Python to rip the most important, human-readable sentence out of that massive error object and turn it into standard text.
+            When you wrap the error object like this—str(e)—you are forcing Python to rip the most important, human-readable sentence out of that massive error object and turn it into standard text.
 
-        Example 1: A Math Error
+            Example 1: A Math Error
 
-        The crash: Your code accidentally divides by zero.
+            The crash: Your code accidentally divides by zero.
 
-        What e is: <class 'ZeroDivisionError'> object at 0x7f8...
+            What e is: <class 'ZeroDivisionError'> object at 0x7f8...
 
-        What str(e) becomes: "division by zero"
+            What str(e) becomes: "division by zero"
 
-        Example 2: A File Error
+            Example 2: A File Error
 
-        The crash: OpenCV tries to open an image that doesn't exist.
+            The crash: OpenCV tries to open an image that doesn't exist.
 
-        What str(e) becomes: "Could not read image at path: tmp/spiral.jpg"
+            What str(e) becomes: "Could not read image at path: tmp/spiral.jpg"
 
-        3. Why it is brilliant for debugging
-        By putting str(e) inside your JSON response, you are sending the exact crash reason directly to the patient's phone.
+            3. Why it is brilliant for debugging
+            By putting str(e) inside your JSON response, you are sending the exact crash reason directly to the patient's phone.
 
-        When you (the developer) are testing the mobile app and something goes wrong, you won't just see a generic "Server Error" on the screen. The screen will literally print out:
-        {"error": "Missing weight metrics for 'spiral' at /weights/siamese_spiral.pth"}
+            When you (the developer) are testing the mobile app and something goes wrong, you won't just see a generic "Server Error" on the screen. The screen will literally print out:
+            {"error": "Missing weight metrics for 'spiral' at /weights/siamese_spiral.pth"}
 
-        It saves you from having to remote into your server, dig through hundreds of lines of terminal logs, and guess what went wrong. The server tells you exactly what line to fix!"""    
+            It saves you from having to remote into your server, dig through hundreds of lines of terminal logs, and guess what went wrong. The server tells you exactly what line to fix!"""    
         except Exception as e:
             if os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
