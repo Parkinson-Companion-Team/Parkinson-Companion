@@ -66,6 +66,7 @@ FLOWCHART OF THIS SCRIPT
 
 import os
 import argparse #for terminal use
+import random
 import torch
 import torch.nn as nn #nural network(nn) layer
 import torch.optim as optim
@@ -73,12 +74,17 @@ import torch.nn.functional as F
 #F contains all the raw mathematical operations and functions that a neural network needs to do its job
 from torch.utils.data import DataLoader
 
-from ml_engine.write.dataset import ParkinsonSiameseDataset
+from ml_engine.write.dataset import ParkinsonSiameseDataset, split_patients
 from ml_engine.write.architecture import SiameseParkinsonNetwork
+
+# Folders are built from THIS file's location, so the script works no matter which
+# folder you run it from, and the weights land exactly where predictor.py looks for them.
+WRITE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../ml_engine/write
+DATA_DIR = os.path.normpath(os.path.join(WRITE_DIR, "..", "data"))  # .../ml_engine/data
+WEIGHTS_DIR = os.path.join(WRITE_DIR, "weights")                 # .../ml_engine/write/weights
 
 class ContrastiveLoss(nn.Module):
     def __init__(self, margin=1.0):
-        # super().__init__(): Takes: None (implicitly self). Returns: None. Calls the constructor of the parent class (nn.Module) to initialize its internal state.
         super().__init__() # to inherit parent constractor
         self.margin = margin
         # here margin is distance between healthy and patient data 
@@ -87,75 +93,96 @@ class ContrastiveLoss(nn.Module):
 # 1.this fn calculate euclidean distance and constractive loss
     def forward(self, output1, output2, label):
         #p_d funtion take pair of image and calculate Distance = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2 +...} after that keepdim force the result to column.
-        
-        # F.pairwise_distance(): Takes: tensor1, tensor2, keepdim (bool). Returns: A tensor containing the calculated distance between the two input tensors.
         euclidean_distance = F.pairwise_distance(output1, output2, keepdim=True )
-        
         #The constractive loss formula where Y=label,D= euclidean distance and m= slef.margin
 
-        # torch.clamp(): Takes: input tensor, min value (optional), max value (optional). Returns: A tensor with all elements clamped into the range [min, max].
-        # torch.pow(): Takes: input tensor, exponent (number). Returns: A tensor with the elements of the input raised to the power of the exponent.
-        # torch.mean(): Takes: input tensor. Returns: A scalar tensor representing the mean (average) of all elements in the input tensor.
         loss_contrastive = torch.mean(
             (1 - label) * torch.pow(euclidean_distance, 2) +
             (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2)
         )
         return loss_contrastive
 
-        """Contrastive Loss teaches a machine learning model how to understand similarity rather than forcing it to memorize specific categories.
-
-        Instead of asking a model, "Is this a picture of a cat?" (which standard classification does), contrastive loss asks, "Are these two pictures of the same thing?"""
+        # Contrastive Loss teaches a machine learning model how to understand similarity rather than forcing it to memorize specific categories.
+        #
+        # Instead of asking a model, "Is this a picture of a cat?" (which standard classification does), contrastive loss asks, "Are these two pictures of the same thing?"
 
 # Notice we now pass 'test_type' directly into the function
 
+def validate(net, val_loader, criterion, device):
+    """
+    Runs the validation patients through the network WITHOUT learning from them.
+    TAKES: net, val_loader (fixed pairs), criterion (the loss), device.
+    RETURNS: (average loss, mean distance of SIMILAR pairs, mean distance of DIFFERENT pairs).
+    A healthy model has a small first distance and a large second distance.
+    """
+    net.eval()  # lock the brain: no dropout, BatchNorm uses its saved statistics
+    total_loss = 0.0
+    same_dists, diff_dists = [], []
+
+    with torch.no_grad():  # no calculus engine needed, saves memory and time
+        for img0, img1, label in val_loader:
+            img0, img1, label = img0.to(device), img1.to(device), label.to(device)
+            output1, output2 = net(img0, img1)
+            total_loss += criterion(output1, output2, label).item()
+
+            d = F.pairwise_distance(output1, output2)   # one distance per pair
+            lab = label.view(-1)                         # 0.0 = similar, 1.0 = different
+            same_dists.extend(d[lab == 0].tolist())
+            diff_dists.extend(d[lab == 1].tolist())
+
+    mean = lambda xs: sum(xs) / len(xs) if xs else float('nan')
+    return total_loss / len(val_loader), mean(same_dists), mean(diff_dists)
+
+
 #this funciton check device and do dataload and train
-def train_model(test_type):
-    # torch.cuda.is_available(): Takes: None. Returns: Boolean (True if GPU is available, False if not).
-    # torch.device(): Takes: A string representing the device type ("cuda" or "cpu"). Returns: A torch.device object representing the device where computations will happen.
+def train_model(test_type, epochs=20):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # print(): Takes: A string or objects to print. Returns: None (outputs the text to the terminal).
     print(f"--- Training Initialization ---")
     print(f"Device: {device}")
-    
-    # str.upper(): Takes: None (it's a string method). Returns: A new string with all characters converted to uppercase.
     print(f"Targeting Dataset: {test_type.upper()}")
-    
-    image_dir_path = "data/raw/"
-    weights_dir = "weights/"
+
+    # Fixed seeds -> the same split and the same starting weights every run, so results can be compared
+    random.seed(42)
+    torch.manual_seed(42)
+
+    image_dir_path = DATA_DIR
+    weights_dir = WEIGHTS_DIR
+
+    # Split PATIENTS (not images) into train and validation, so all 4 images of a person
+    # stay on the same side and validation really means "people the model has never seen".
+    train_ids, val_ids = split_patients(image_dir_path, test_type)
 
     # The dataset dynamically uses whatever folder you typed in the terminal
-    siamese_dataset = ParkinsonSiameseDataset(
+    train_dataset = ParkinsonSiameseDataset(
         img_dir=image_dir_path,
-        subfolder=test_type  
+        subfolder=test_type,
+        patient_ids=train_ids
     )
-    
-    # DataLoader(): Takes: dataset object, batch_size (int), shuffle (bool), num_workers (int). Returns: An iterable DataLoader object that batches and shuffles the dataset.
-    train_dataloader = DataLoader(siamese_dataset, shuffle=True, num_workers=0, batch_size=32)
-# model=network
+    # Validation uses fixed pairs: the same pairs every epoch, so a falling val loss
+    # means the model really improved, not that it got easier pairs.
+    val_dataset = ParkinsonSiameseDataset(
+        img_dir=image_dir_path,
+        subfolder=test_type,
+        patient_ids=val_ids,
+        fixed_pairs=True
+    )
 
-    # .to(device): Takes: A torch.device object. Returns: The PyTorch model (or tensor) moved to the specified device (CPU or GPU memory).
-    model = SiameseParkinsonNetwork().to(device)
+    train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=0, batch_size=32)
+    val_dataloader = DataLoader(val_dataset, shuffle=False, num_workers=0, batch_size=32)
+# net=network
+    net = SiameseParkinsonNetwork().to(device)
     criterion = ContrastiveLoss(margin=1.0)
-    
-    # model.parameters(): Takes: None. Returns: An iterator containing all the learnable weights and biases (parameters) of the neural network.
-    # optim.Adam(): Takes: model parameters, lr (learning rate as float). Returns: An Adam optimizer object that will update the network weights.
     optimizer = optim.Adam(net.parameters(), lr=0.0005)
     #Adam is the "mechanic." When the grader says the AI made a mistake, Adam goes inside the network and turns the mathematical dials to fix it. lr=0.0005 (Learning Rate) tells Adam to make very tiny, careful adjustments.
 
-    epochs = 20
-    
     print("Starting training phase...")
-    
-    # model.train(): Takes: None. Returns: The module itself. Sets the neural network to "training mode" (activates features like Dropout and BatchNorm specific to training).
-    model.train() 
+    net.train() 
 
 
-    """new for structure
-    knowledgeconveyor_belt = [
+    """new for structure knowledgeconveyor_belt = [
     ("Alice", "Bob", 5.0),
     ("Charlie", "David", 2.5),
-    ("Eve", "Frank", 10.0)]
+    ("Eve", "Frank", 10.0)
 ]
     for package in conveyor_belt:
     print(package)
@@ -189,11 +216,16 @@ def train_model(test_type):
     # Batch 2: Eve -> Frank
     """
 
-    # range(): Takes: an integer (stop value). Returns: An iterable sequence of numbers from 0 up to (but not including) the stop value.
+    os.makedirs(weights_dir, exist_ok=True)
+
+    # Dynamically names the output file based on your input!
+    save_path = os.path.join(weights_dir, f"siamese_{test_type}.pth") 
+
+    best_val_loss = float("inf")  # lowest validation loss seen so far
+
     for epoch in range(epochs):
+        net.train()  # validate() switches the net to eval mode, so switch back to training every epoch
         epoch_loss = 0.0
-        
-        # enumerate(): Takes: an iterable (like train_dataloader) and an optional start index (0). Returns: An iterator that yields a tuple (index, item) for each loop iteration.
         for i, (img0, img1, label) in enumerate(train_dataloader, 0):#0 is by default index
             img0, img1, label = img0.to(device), img1.to(device), label.to(device)
 
@@ -210,12 +242,11 @@ def train_model(test_type):
 
             optimizer.zero_grad() is the eraser. It wipes the mathematical whiteboard completely clean so the model can calculate fresh, accurate directions for the new batch of images."""
 
-            # optimizer.zero_grad(): Takes: None. Returns: None. Clears the old gradients from the previous batch so they don't accumulate incorrectly.
             optimizer.zero_grad()
 
             """In Python, if you put a magic method named __call__ inside a class, it gives the resulting object the special ability to be triggered exactly like a function.
 
-            Because our SiameseParkinsonNetwork inherited from PyTorch's nn.Module, it silently inherited PyTorch's highly complex __call__ function.
+            Because your SiameseParkinsonNetwork inherited from PyTorch's nn.Module, it silently inherited PyTorch's highly complex __call__ function.
 
             2. The Secret Handshake (The forward function)
             When you write net(img0, img1), here is the exact chain of events that happens in the fraction of a millisecond:
@@ -228,14 +259,10 @@ def train_model(test_type):
 
             Your forward function does the actual work (passing the images through the convolution layers), and hands the results (output1, output2) back out."""
             
-            output1, output2 = model(img0, img1)
+            output1, output2 = net(img0, img1)
             
             final_loss_contrastive = criterion(output1, output2, label)
-            
-            # .backward(): Takes: None. Returns: None. Traverses the computational graph backward to calculate the gradients (calculus derivatives) for all network weights.
             final_loss_contrastive.backward()
-            
-            # optimizer.step(): Takes: None. Returns: None. Tells the optimizer to update the network's weights based on the gradients just calculated by .backward().
             optimizer.step()
 
             """loss_contrastive isn't just a number? It is a PyTorch Tensor with a massive, invisible "breadcrumb trail" (computational graph) attached to it so .backward() can do its calculus.
@@ -255,29 +282,28 @@ def train_model(test_type):
 
             By using .item(), you safely drop a lightweight, normal number into your epoch_loss bucket. The heavy breadcrumb trail gets deleted by the computer, keeping your memory completely clean for the next batch of images."""
             
-            # .item(): Takes: None. Returns: A standard Python float/integer extracted from a tensor that only contains a single value.
             epoch_loss += final_loss_contrastive.item()
-            
-        # len(): Takes: A collection (like train_dataloader). Returns: An integer representing the number of items (batches) in that collection.
-        print(f"Epoch [{epoch+1}/{epochs}] | Average Loss: {epoch_loss / len(train_dataloader):.4f}")
 
-    # os.makedirs(): Takes: A string path, and exist_ok (bool). Returns: None. Creates the specified directory structure on the hard drive.
-    os.makedirs(weights_dir, exist_ok=True)
-    
-    # os.path.join(): Takes: Multiple string path components. Returns: A single string representing a properly formatted file path for the current operating system.
-    # Dynamically names the output file based on your input!
-    save_path = os.path.join(weights_dir, f"siamese_{test_type}.pth") 
-    
-    # model.state_dict(): Takes: None. Returns: A Python dictionary containing the current weights and biases of every layer in the model.
-    # torch.save(): Takes: A Python object (like a state_dict) and a file path string. Returns: None. Saves the object to the hard drive at the specified path.
-    torch.save(model.state_dict(), save_path)
-    print(f"Success! Weights saved to: {save_path}\n")
+        train_loss = epoch_loss / len(train_dataloader)
+
+        # After every epoch: test on the validation patients (people the model never trained on)
+        val_loss, same_dist, diff_dist = validate(net, val_dataloader, criterion, device)
+
+        print(f"Epoch [{epoch+1}/{epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} "
+              f"| same-pair dist: {same_dist:.3f} | different-pair dist: {diff_dist:.3f}")
+
+        # Keep only the BEST version of the model (lowest validation loss), so later epochs
+        # that start memorizing the training data cannot overwrite a better model.
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(net.state_dict(), save_path)
+            print(f"  -> New best model saved (val loss {val_loss:.4f})")
+
+    print(f"Success! Best weights (val loss {best_val_loss:.4f}) saved to: {save_path}\n")
 
 if __name__ == "__main__":
     #This line tells Python: "Only run the code below this line IF I am running this specific file directly. If another file is just importing me to borrow my functions, ignore this section completely."
     # This captures what you type in the terminal
-    
-    # argparse.ArgumentParser(): Takes: a description string. Returns: An ArgumentParser object used to handle terminal commands.
     parser = argparse.ArgumentParser(description="Train Parkinson's Siamese Network")
 
 
@@ -290,18 +316,20 @@ if __name__ == "__main__":
     required=True: The script will refuse to run if the user forgets this flag.
 
     help: If the user types python script.py --help, this exact message will pop up to guide them."""
-    
-    # parser.add_argument(): Takes: Flag string, expected variable type, required boolean, help string. Returns: None. Configures the parser to expect specific terminal flags.
     parser.add_argument(
         '--type', 
         type=str, 
         required=True, 
         help="The name of the subfolder to train (e.g., spiral, meander, circle)"
     )
-    
-    # parser.parse_args(): Takes: None (reads from sys.argv automatically). Returns: A Namespace object containing all the parsed values from the terminal.
+    parser.add_argument(
+        '--epochs',
+        type=int,
+        default=20,
+        help="How many passes over the training data (default 20)"
+    )
     args = parser.parse_args()
     #What it does: This line actually executes the rules. It reads the terminal, checks that you followed the rules (meaning you included --type), grabs the word you typed, and saves it inside the args box.
     
     # Pass the terminal argument into the training function
-    train_model(args.type)
+    train_model(args.type, args.epochs)
