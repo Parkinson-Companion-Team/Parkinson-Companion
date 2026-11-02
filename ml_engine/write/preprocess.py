@@ -40,10 +40,9 @@ def clean_and_threshold_image(image_path):
     # cv2.adaptiveThreshold():
     # TAKES: The source grayscale image, maximum pixel value (255), adaptive method (GAUSSIAN_C), threshold style (BINARY_INV), block size (11), and a fine-tuning constant (2).
     # RETURNS: A binarized NumPy array where the background is pure black (0) and pen strokes are pure white (255) to strip away real-world shadows.
-    binary_img = cv2.adaptiveThreshold(
-        img, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV, 11, 2
+    blur = cv2.GaussianBlur(img, (5, 5), 0)
+    _, binary_img = cv2.threshold(
+    blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
     
     # cv2.resize():
