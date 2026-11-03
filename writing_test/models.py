@@ -22,9 +22,11 @@ class DailyWritingTest(models.Model):
     test_type = models.CharField(max_length=10, choices=TEST_TYPE_CHOICES, default='spiral')
     test_image = models.ImageField(upload_to='handwriting_samples/%Y/%m/%d/')
     stability_score = models.FloatField(null=True, blank=True)
-        distance = models.FloatField(null=True, blank=True, help_text="Euclidean distance to the healthy anchor")
-    embedding = models.JSONField(null=True, blank=True, help_text="128-D embedding, stored for trend recomputation")
-    model_version = models.CharField(max_length=50, blank=True),
+    distance = models.FloatField(null=True, blank=True, help_text="Euclidean distance to the healthy anchor")
+    embedding = models.JSONField(null=True, blank=True,
+                                 
+    help_text="128-D embedding,   stored for trend recomputation")
+    model_version = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

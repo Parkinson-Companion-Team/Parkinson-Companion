@@ -123,12 +123,15 @@ ContentFile takes your raw bytes (or raw text) and perfectly wraps them into a s
 import os
 
 # Import your database model and the PyTorch toolbelt!
-from .models import DailyWritingTest
-from ml_engine.write.predictor import evaluate_stability
+from rest_framework.permissions import IsAuthenticated
+from .models import DailyWritingTest, Patient
+from ml_engine.write.predictor import analyze_drawing
 
 class ParkinsonTestAnalysisView(APIView):
     # This tells Django to expect a file upload (like a photo from a phone)
     parser_classes = [MultiPartParser, FormParser]
+        # Only authenticated users may upload (the mobile app sends a token with each request)
+    permission_classes = [IsAuthenticated]
     #If a user sends us an image, use the first blueprint to build a worker. If they send us a text form, use the second blueprint.
 
     def post(self, request, format=None):
@@ -136,6 +139,8 @@ class ParkinsonTestAnalysisView(APIView):
         uploaded_file = request.data.get('uploaded_file')
         
         if not test_type or not uploaded_file:
+            if test_type not in dict(DailyWritingTest.TEST_TYPE_CHOICES):
+                return Response({"error": "test_type must be 'spiral' or 'meander'"}, status=status.HTTP_400_BAD_REQUEST)
             return Response({"error": "Missing test_type or uploaded_file"}, status=status.HTTP_400_BAD_REQUEST)
             
         # 1. Temporarily save the incoming photo to the server disk
@@ -153,14 +158,19 @@ class ParkinsonTestAnalysisView(APIView):
         
         try:
             # 2. CALL THE PYTORCH ENGINE (Your predictor.py script!)
-            calculated_stability = evaluate_stability(full_temp_path, test_type)
-            
+            result = analyze_drawing(full_temp_path, test_type)
+
             # 3. Save the official record to your Django database
+            # Each logged-in user gets a Patient profile the first time they upload.
+            patient, _ = Patient.objects.get_or_create(user=request.user)
             test_record = DailyWritingTest.objects.create(
-                patient=request.user, # Assumes the mobile app sends an authenticated token
+                patient=patient,   # was request.user, but the foreign key needs a Patient
                 test_type=test_type,
                 test_image=uploaded_file,
-                stability_score=calculated_stability
+                stability_score=result["stability_score"],
+                distance=result["distance"],
+                embedding=result["embedding"],
+                model_version=result["model_version"],
             )
             
             # Clean up the temporary file
@@ -168,14 +178,16 @@ class ParkinsonTestAnalysisView(APIView):
                 os.remove(full_temp_path)
             
             # 4. Return the calculated score back to the Android screen
-            return Response({
+                return Response({
                 "success": True,
                 "data": {
+                    "id": test_record.id,
                     "test_type": test_record.test_type,
-                    "stability_score": test_record.stability_score
+                    "stability_score": test_record.stability_score,
+                    "distance": test_record.distance,
+                    "created_at": test_record.created_at.isoformat(),
                 }
-            }, 
-            status=status.HTTP_201_CREATED)
+            }, status=status.HTTP_201_CREATED)
 
 
             """1. What is e?

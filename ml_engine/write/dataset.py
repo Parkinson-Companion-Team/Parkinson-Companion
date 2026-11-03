@@ -51,8 +51,42 @@ import os
 import random
 import torch
 from torch.utils.data import Dataset
+import hashlib
 import torchvision.transforms as transforms
 from ml_engine.write.preprocess import clean_and_threshold_image
+def build_patient_groups(folders):
+    """
+    Some drawings are byte-identical copies filed under different patient ids
+    (e.g. P1, P4 and P25 share the same images). Those ids are really one recording,
+    so we link them into one group; splitting and pairing by group means a copy
+    can never leak between train and validation.
+    TAKES: folders (dict: class -> folder path).
+    RETURNS: dict patient_id -> group id (the smallest id in the group).
+    """
+    parent = {}  # union-find: each id points towards its group's main id
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    first_owner = {}  # file hash -> first patient id that owned this exact image
+    for folder in folders.values():
+        for f in sorted(os.listdir(folder)):
+            if not f.lower().endswith(('.jpg', '.png')) or f.startswith('._') or '-' not in f:
+                continue
+            pid = f.split('-')[-1].split('.')[0]
+            parent.setdefault(pid, pid)
+            with open(os.path.join(folder, f), 'rb') as fh:
+                h = hashlib.md5(fh.read()).hexdigest()
+            if h in first_owner:
+                ra, rb = find(pid), find(first_owner[h])
+                if ra != rb:
+                    parent[max(ra, rb)] = min(ra, rb)
+            else:
+                first_owner[h] = pid
+    return {p: find(p) for p in parent}
 
 class ParkinsonSiameseDataset(Dataset):
     def __init__(self, img_dir, subfolder="", transform=None,
@@ -97,6 +131,8 @@ class ParkinsonSiameseDataset(Dataset):
                 f"Need a 'healthy...' and a 'patient...' folder inside {self.base_dir}, "
                 f"found: {sorted(self.folders_to_scan.values())}"
             )
+                # ids that share identical images become ONE patient group
+        self.group_of = build_patient_groups(self.folders_to_scan)
 
         self.data = []
         self.healthy_indices = []
@@ -136,7 +172,7 @@ class ParkinsonSiameseDataset(Dataset):
                     continue
 
                 patient_part = parts[-1].split('.')[0] # e.g., "H1" or "P4"
-
+                patient_part = self.group_of.get(patient_part, patient_part)  # use the group id
                 # Train/validation split: skip patients that belong to the other split
                 if self.patient_ids is not None and patient_part not in self.patient_ids:
                     continue
@@ -285,5 +321,7 @@ if __name__ == "__main__":
         print(kind, "| train patients:", len(tr), "| val patients:", len(va), "| overlap:", len(tr & va))
         train_ds = ParkinsonSiameseDataset(root, kind, patient_ids=tr)
         val_ds = ParkinsonSiameseDataset(root, kind, patient_ids=va, fixed_pairs=True)
+        h = lambda ds: {hashlib.md5(open(d['FULL_PATH'], 'rb').read()).hexdigest() for d in ds.data}
+        print("identical images shared by train and val:", len(h(train_ds) & h(val_ds)))
         a, b, y = val_ds[0]
         print("sample:", a.shape, b.shape, y.item(), "| val pair repeatable:", y.item() == val_ds[0][2].item())

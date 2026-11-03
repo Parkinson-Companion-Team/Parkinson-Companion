@@ -167,7 +167,7 @@ def train_model(test_type, epochs=20):
         fixed_pairs=True
     )
 
-    train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=0, batch_size=32)
+    train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=0, batch_size=16)
     val_dataloader = DataLoader(val_dataset, shuffle=False, num_workers=0, batch_size=32)
 # net=network
     net = SiameseParkinsonNetwork().to(device)

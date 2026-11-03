@@ -100,7 +100,7 @@ class HandwritingFeatureExtractor(nn.Module):
             # nn.Dropout():
             # TAKES: Probability 'p' (0.3 means a 30% chance).
             # RETURNS: A regularization layer that randomly zeroes out neurons during training to prevent the network from memorizing the data (overfitting).
-            nn.Dropout(p=0.3), 
+            #nn.Dropout(p=0.3), 
             nn.Linear(128, 128) 
         )
 
