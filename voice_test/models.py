@@ -14,6 +14,7 @@ class VoiceTestResult(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="voice_test_results")
     task_type = models.CharField(max_length=10, choices=TASK_CHOICES)
     stability_score = models.FloatField(help_text="Calibrated 0-100 stability score for this test")
+    stability_vs_recent = models.FloatField(blank=True, null=True)
     embedding = models.JSONField(help_text="128-D embedding vector, stored for trend recomputation")
     raw_features = models.JSONField(
         help_text="Interpretable acoustic features: jitter, shimmer, HNR, F0, etc.",
@@ -32,10 +33,16 @@ class VoiceTestResult(models.Model):
 
 
 class PatientVoiceBaseline(models.Model):
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name="voice_baseline")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="voice_baselines")
+    task_type = models.CharField(max_length=10, choices=VoiceTestResult.TASK_CHOICES)
     embedding = models.JSONField()
     model_version = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["patient", "task_type"], name="unique_patient_voice_task_baseline"),
+        ]
 
     def __str__(self):
         return f"Baseline for {self.patient} ({self.created_at.date()})"

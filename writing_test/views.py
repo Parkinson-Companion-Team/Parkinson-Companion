@@ -121,11 +121,14 @@ The Solution: ContentFile
 ContentFile takes your raw bytes (or raw text) and perfectly wraps them into a standard Django File object so the storage system can save it to your hard drive."""
 
 import os
+import logging
 
 # Import your database model and the PyTorch toolbelt!
 from rest_framework.permissions import IsAuthenticated
 from .models import DailyWritingTest, Patient
 from ml_engine.write.predictor import analyze_drawing
+
+logger = logging.getLogger(__name__)
 
 class ParkinsonTestAnalysisView(APIView):
     # This tells Django to expect a file upload (like a photo from a phone)
@@ -173,12 +176,8 @@ class ParkinsonTestAnalysisView(APIView):
                 model_version=result["model_version"],
             )
             
-            # Clean up the temporary file
-            if os.path.exists(full_temp_path):
-                os.remove(full_temp_path)
-            
             # 4. Return the calculated score back to the Android screen
-                return Response({
+            return Response({
                 "success": True,
                 "data": {
                     "id": test_record.id,
@@ -226,7 +225,12 @@ class ParkinsonTestAnalysisView(APIView):
             {"error": "Missing weight metrics for 'spiral' at /weights/siamese_spiral.pth"}
 
             It saves you from having to remote into your server, dig through hundreds of lines of terminal logs, and guess what went wrong. The server tells you exactly what line to fix!"""    
-        except Exception as e:
+        except Exception:
+            logger.exception("Writing test processing failed for user %s", request.user.pk)
+            return Response(
+                {"error": "Unable to process the handwriting sample."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        finally:
             if os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

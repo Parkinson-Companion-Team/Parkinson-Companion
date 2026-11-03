@@ -13,7 +13,7 @@ def list_wav_files(directory: str) -> list:
     for f in os.listdir(directory):
         if f.endswith(".wav"):
             wav_files.append(os.path.join(directory, f))
-            return wav_files
+    return wav_files
 # -------------------------------------------------------------------------
 # EXPLANATION FOR list_wav_files:
 # Takes: `directory` (string) — the name of the folder you want to search.

@@ -73,7 +73,8 @@ def collate_fn(batch):
 
     def pad(mel):
         pad_amount = max_len - mel.shape[-1]
-        return torch.nn.functional.pad(mel, (0, pad_amount))
+        pad_value = mel.amin().item()
+        return torch.nn.functional.pad(mel, (0, pad_amount), value=pad_value)
 
     mels1 = torch.stack([pad(m) for m in mels1])
     mels2 = torch.stack([pad(m) for m in mels2])
@@ -170,7 +171,7 @@ if __name__ == "__main__":
         healthy_dir="ml_engine/data/raw/healthy_voice",
         pd_dir="ml_engine/data/raw/parkinsons_voice",
         train_pairs_count=800,
-        val_pairs_count=200,
+        test_pairs_count=200,
     )
     train(train_pairs, val_pairs, epochs=50, batch_size=8)
 # -------------------------------------------------------------------------

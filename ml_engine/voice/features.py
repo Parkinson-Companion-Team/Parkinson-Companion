@@ -205,7 +205,10 @@ def extract_acoustic_features(audio_path: str, min_f0: float = 75, max_f0: float
     for key, value in features.items():
         
         # If the value is a decimal number, chop it to 4 decimal places
-        if isinstance(value, float):
+        if isinstance(value, (float, np.floating)):
+            if not np.isfinite(value):
+                clean_features[key] = None
+                continue
             clean_features[key] = round(value, 4)
             
         # If the value is anything else (like 'None'), just copy it over untouched
