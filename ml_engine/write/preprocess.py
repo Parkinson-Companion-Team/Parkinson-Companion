@@ -18,6 +18,10 @@ LOGIC FLOWCHART
 import cv2
 from PIL import Image
 
+
+IMAGE_SIZE = 224
+
+
 def clean_and_threshold_image(image_path):
     """
     Single source of truth for handwriting preprocessing.
@@ -45,10 +49,19 @@ def clean_and_threshold_image(image_path):
     blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
     
-    # cv2.resize():
-    # TAKES: The source image, the target dimensions (224x224), and the mathematical interpolation method (INTER_AREA for safe shrinking).
-    # RETURNS: A new NumPy array resized exactly to the target dimensions without losing thin pen stroke details.
-    resized_img = cv2.resize(binary_img, (224, 224), interpolation=cv2.INTER_AREA)
+    # Preserve the drawing's aspect ratio by padding it to a square before resizing.
+    height, width = binary_img.shape
+    side = max(height, width)
+    top = (side - height) // 2
+    bottom = side - height - top
+    left = (side - width) // 2
+    right = side - width - left
+    squared_img = cv2.copyMakeBorder(
+        binary_img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
+    )
+    resized_img = cv2.resize(
+        squared_img, (IMAGE_SIZE, IMAGE_SIZE), interpolation=cv2.INTER_AREA
+    )
     
     # Image.fromarray():
     # TAKES: A raw NumPy array of numbers (from OpenCV).

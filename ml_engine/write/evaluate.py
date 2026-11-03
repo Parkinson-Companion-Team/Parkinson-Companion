@@ -12,7 +12,10 @@ def embed_all(net, ds):
     """TAKES: the network and a dataset. RETURNS: (embeddings [N,128], is_pd [N] as 0/1)."""
     net.eval()
     with torch.no_grad():
-        E = torch.stack([net.twin_cnn(ds.images[i].unsqueeze(0)).squeeze(0) for i in range(len(ds))])
+        E = torch.stack([
+            net.twin_cnn(ds._get_image(i).unsqueeze(0)).squeeze(0)
+            for i in range(len(ds))
+        ])
     is_pd = torch.tensor([1 if d['CLASS_TYPE'] == 2 else 0 for d in ds.data])
     return E, is_pd
 

@@ -83,7 +83,7 @@ def build_patient_groups(folders):
             if h in first_owner:
                 ra, rb = find(pid), find(first_owner[h])
                 if ra != rb:
-                    parent[max(ra, rb)] = min(ra, rb)
+                    parent[ra] = rb
             else:
                 first_owner[h] = pid
     return {p: find(p) for p in parent}
@@ -223,8 +223,8 @@ class ParkinsonSiameseDataset(Dataset):
             for i in pool:
                 me = self.data[i]['ID_PATIENT']
                 others = [j for j in pool if self.data[j]['ID_PATIENT'] != me]
-                # SAFEGUARD: If only 1 unique patient exists in this class, we MUST use them
-                self.positive_candidates[i] = others if others else [j for j in pool if j != i]
+                fallback = [j for j in pool if j != i]
+                self.positive_candidates[i] = others or fallback or [i]
 
         # print():
         # TAKES: One or more objects (usually strings).
@@ -303,14 +303,36 @@ def split_patients(img_dir, subfolder, val_ratio=0.2, seed=42):
     """
     ds = ParkinsonSiameseDataset(img_dir, subfolder, cache=False)  # only reads file names
     rng = random.Random(seed)
-    train_ids, val_ids = set(), set()
-    for patients in (ds.healthy_patients, ds.parkinson_patients):
-        ids = sorted(patients)
-        rng.shuffle(ids)
-        n_val = max(1, round(len(ids) * val_ratio))
-        val_ids.update(ids[:n_val])
-        train_ids.update(ids[n_val:])
-    return train_ids, val_ids
+    class_groups = [
+        {ds.group_of.get(patient_id, patient_id) for patient_id in ds.healthy_patients},
+        {ds.group_of.get(patient_id, patient_id) for patient_id in ds.parkinson_patients},
+    ]
+    for groups in class_groups:
+        if len(groups) < 2:
+            raise ValueError(
+                f"Need at least 2 patient groups per class to split {subfolder}; "
+                f"found {len(groups)}."
+            )
+
+    all_groups = set().union(*class_groups)
+    val_groups = set()
+    for groups in class_groups:
+        shuffled = sorted(groups)
+        rng.shuffle(shuffled)
+        n_val = min(len(shuffled) - 1, max(1, round(len(shuffled) * val_ratio)))
+        val_groups.update(shuffled[:n_val])
+
+    # Keep at least one group for each class in both partitions.
+    for groups in class_groups:
+        if not groups - val_groups:
+            removable = sorted(val_groups & groups)
+            val_groups.remove(removable[-1])
+        if not val_groups & groups:
+            candidates = sorted(groups - val_groups)
+            val_groups.add(candidates[0])
+
+    train_groups = all_groups - val_groups
+    return train_groups, val_groups
 
 
 if __name__ == "__main__":
