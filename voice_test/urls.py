@@ -1,5 +1,3 @@
-# voice_test/urls.py
-
 from django.urls import path
 from voice_test import views
 

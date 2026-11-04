@@ -26,6 +26,7 @@ def calibrate(kind):
     tr, va = split_patients(DATA_DIR, kind)
     net = SiameseParkinsonNetwork()
     net.load_state_dict(torch.load(os.path.join(WEIGHTS_DIR, f"siamese_{kind}.pth"), map_location="cpu"))
+    net.eval()
 
     E_tr, y_tr = embed_all(net, ParkinsonSiameseDataset(DATA_DIR, kind, patient_ids=tr))
     E_va, y_va = embed_all(net, ParkinsonSiameseDataset(DATA_DIR, kind, patient_ids=va))

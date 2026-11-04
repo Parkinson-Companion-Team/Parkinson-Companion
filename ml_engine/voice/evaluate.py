@@ -13,9 +13,7 @@ from ml_engine.voice.model import SiameseVoiceNet
 from ml_engine.voice.preprocess import preprocess_audio
 from ml_engine.voice.buildPairs import list_wav_files
 
-model = SiameseVoiceNet(embedding_dim=128)
-model.load_state_dict(torch.load("ml_engine/voice/weights/voice_model.pth"))
-model.eval()
+model = None
 # -------------------------------------------------------------------------
 # EXPLANATION FOR SETUP & MODEL LOADING:
 # Takes: The saved weights file (`voice_model.pth`) from your hard drive.
@@ -45,11 +43,19 @@ def get_embedding(path):
 # -------------------------------------------------------------------------
 
 
-healthy_files = list_wav_files("ml_engine/data/raw/healthy_voice")[:20]
-pd_files = list_wav_files("ml_engine/data/raw/parkinsons_voice")[:20]
+def main():
+    global model
+    model = SiameseVoiceNet(embedding_dim=128)
+    model.load_state_dict(torch.load("ml_engine/voice/weights/voice_model.pth", map_location="cpu"))
+    model.eval()
 
-healthy_healthy_dists = []
-healthy_pd_dists = []
+    healthy_files = list_wav_files("ml_engine/data/raw/healthy_voice")[:20]
+    pd_files = list_wav_files("ml_engine/data/raw/parkinsons_voice")[:20]
+    if len(healthy_files) < 20 or len(pd_files) < 10:
+        raise ValueError("Evaluation requires at least 20 healthy and 10 PD wav files.")
+
+    healthy_healthy_dists = []
+    healthy_pd_dists = []
 # -------------------------------------------------------------------------
 # EXPLANATION FOR DATA PREPARATION:
 # Takes: The folder paths containing your raw data.
@@ -61,13 +67,13 @@ healthy_pd_dists = []
 # -------------------------------------------------------------------------
 
 
-for i in range(10):
-    e1 = get_embedding(healthy_files[i])
-    e2 = get_embedding(healthy_files[i + 10])
-    healthy_healthy_dists.append(torch.norm(e1 - e2).item())
+    for i in range(10):
+        e1 = get_embedding(healthy_files[i])
+        e2 = get_embedding(healthy_files[i + 10])
+        healthy_healthy_dists.append(torch.norm(e1 - e2).item())
 
-    e3 = get_embedding(pd_files[i])
-    healthy_pd_dists.append(torch.norm(e1 - e3).item())
+        e3 = get_embedding(pd_files[i])
+        healthy_pd_dists.append(torch.norm(e1 - e3).item())
 # -------------------------------------------------------------------------
 # EXPLANATION FOR THE EVALUATION LOOP:
 # Takes: The file paths from the lists above.
@@ -81,8 +87,12 @@ for i in range(10):
 # -------------------------------------------------------------------------
 
 
-print(f"Avg healthy-healthy distance: {sum(healthy_healthy_dists)/len(healthy_healthy_dists):.4f}")
-print(f"Avg healthy-PD distance: {sum(healthy_pd_dists)/len(healthy_pd_dists):.4f}")
+    print(f"Avg healthy-healthy distance: {sum(healthy_healthy_dists)/len(healthy_healthy_dists):.4f}")
+    print(f"Avg healthy-PD distance: {sum(healthy_pd_dists)/len(healthy_pd_dists):.4f}")
+
+
+if __name__ == "__main__":
+    main()
 # -------------------------------------------------------------------------
 # EXPLANATION FOR THE OUTPUT:
 # Takes: The fully populated lists of distance scores.

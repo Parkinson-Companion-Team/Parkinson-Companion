@@ -105,10 +105,14 @@ def distance_to_stability(distance, calib):
     RETURNS: a float between 0 and 100. Same formula as make_score_fn() in calibrate.py:
     healthy median distance -> 90, PD median distance -> 35, smooth exponential curve in between.
     """
+    d_healthy = calib["d_healthy"]
+    d_pd = calib["d_pd"]
+    if d_pd <= d_healthy:
+        raise ValueError("Calibration requires d_pd to be greater than d_healthy.")
     ratio = calib["target_pd"] / calib["target_healthy"]
-    exponent = (distance - calib["d_healthy"]) / (calib["d_pd"] - calib["d_healthy"])
+    exponent = (distance - d_healthy) / (d_pd - d_healthy)
     score = calib["target_healthy"] * (ratio ** exponent)
-    return max(0.0, min(100.0, score))
+    return round(max(0.0, min(100.0, score)), 2)
 
 
 def analyze_drawing(uploaded_image_path, test_type):
