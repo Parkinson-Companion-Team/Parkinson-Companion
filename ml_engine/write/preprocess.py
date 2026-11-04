@@ -16,7 +16,42 @@ LOGIC FLOWCHART
 """
 
 import cv2
+import numpy as np
 from PIL import Image
+
+
+class InvalidImageError(ValueError):
+    """Raised when an uploaded image cannot be decoded safely."""
+
+
+def _read_gray(image_path):
+    try:
+        flags = cv2.IMREAD_UNCHANGED if str(image_path).lower().endswith(".png") else cv2.IMREAD_GRAYSCALE
+        image = cv2.imread(str(image_path), flags)
+        if image is None:
+            raise InvalidImageError(f"Could not read image at path: {image_path}")
+        if image.dtype != np.uint8:
+            image = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        if image.ndim == 3 and image.shape[2] == 4:
+            rgb = image[:, :, :3].astype(np.float32)
+            alpha = image[:, :, 3:4].astype(np.float32) / 255.0
+            image = np.clip(rgb * alpha + 255.0 * (1.0 - alpha), 0, 255).astype(np.uint8)
+        if image.ndim == 3:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return image
+    except cv2.error as exc:
+        raise InvalidImageError("Could not decode image") from exc
+
+
+def _binarize(gray):
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    return binary
+
+
+def _needs_flip(binary):
+    return (binary > 0).mean() > 0.5
+
 
 def clean_and_threshold_image(image_path):
     """
@@ -32,18 +67,10 @@ def clean_and_threshold_image(image_path):
     # cv2.imread():
     # TAKES: A string file path and a color mode flag (IMREAD_GRAYSCALE strips colors).
     # RETURNS: A 2D NumPy array representing the image pixels, or None if the file is missing/corrupted.
-    img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
-    
-    if img is None:
-        raise FileNotFoundError(f"Could not read image at path: {image_path}")
-
-    # cv2.adaptiveThreshold():
-    # TAKES: The source grayscale image, maximum pixel value (255), adaptive method (GAUSSIAN_C), threshold style (BINARY_INV), block size (11), and a fine-tuning constant (2).
-    # RETURNS: A binarized NumPy array where the background is pure black (0) and pen strokes are pure white (255) to strip away real-world shadows.
-    blur = cv2.GaussianBlur(img, (5, 5), 0)
-    _, binary_img = cv2.threshold(
-    blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
-    )
+    img = _read_gray(image_path)
+    binary_img = _binarize(img)
+    if _needs_flip(binary_img):
+        binary_img = cv2.bitwise_not(binary_img)
     
     # cv2.resize():
     # TAKES: The source image, the target dimensions (224x224), and the mathematical interpolation method (INTER_AREA for safe shrinking).
