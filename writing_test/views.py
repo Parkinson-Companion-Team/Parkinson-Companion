@@ -121,11 +121,18 @@ The Solution: ContentFile
 ContentFile takes your raw bytes (or raw text) and perfectly wraps them into a standard Django File object so the storage system can save it to your hard drive."""
 
 import os
+import logging
+from django.conf import settings
 
 # Import your database model and the PyTorch toolbelt!
 from rest_framework.permissions import IsAuthenticated
 from .models import DailyWritingTest, Patient
 from ml_engine.write.predictor import analyze_drawing
+from ml_engine.write.preprocess import InvalidImageError
+from .trends import build_history
+
+logger = logging.getLogger(__name__)
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 class ParkinsonTestAnalysisView(APIView):
     # This tells Django to expect a file upload (like a photo from a phone)
@@ -137,26 +144,19 @@ class ParkinsonTestAnalysisView(APIView):
     def post(self, request, format=None):
         test_type = request.data.get('test_type')
         uploaded_file = request.data.get('uploaded_file')
-        
-        if not test_type or not uploaded_file:
-            if test_type not in dict(DailyWritingTest.TEST_TYPE_CHOICES):
-                return Response({"error": "test_type must be 'spiral' or 'meander'"}, status=status.HTTP_400_BAD_REQUEST)
+        if test_type not in dict(DailyWritingTest.TEST_TYPE_CHOICES):
+            return Response({"error": "test_type must be 'spiral' or 'meander'"}, status=status.HTTP_400_BAD_REQUEST)
+        if not uploaded_file:
             return Response({"error": "Missing test_type or uploaded_file"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        # 1. Temporarily save the incoming photo to the server disk
-        temp_path = default_storage.save(f"tmp/{uploaded_file.name}", ContentFile(uploaded_file.read()))
-        """uploaded_file.read(): You open the file the patient sent and read 100% of its raw bytes into the server's temporary memory.
+        if os.path.splitext(uploaded_file.name)[1].lower() not in {".jpg", ".jpeg", ".png"}:
+            return Response({"error": "Only JPG and PNG images are supported"}, status=status.HTTP_400_BAD_REQUEST)
+        if uploaded_file.size > MAX_UPLOAD_BYTES:
+            return Response({"error": "File is too large"}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
-        ContentFile(...): You wrap those raw bytes inside a brand new Django "Manila Folder".
-
-        f"tmp/{uploaded_file.name}": You tell the Filing Clerk to create a folder named tmp (if it doesn't exist) and save the file inside it using the exact name the patient gave it (e.g., tmp/spiral_test.jpg).
-
-        temp_path: Django hands you back the relative database path (e.g., tmp/spiral_test.jpg)."""
-
-        full_temp_path = default_storage.path(temp_path)
-        """It calculates the massive, absolute hard-drive path (e.g., C:/workspaces/Parkinsons_Care/media/tmp/spiral_test.jpg)"""
-        
+        full_temp_path = None
         try:
+            temp_path = default_storage.save(f"tmp/{uploaded_file.name}", ContentFile(uploaded_file.read()))
+            full_temp_path = default_storage.path(temp_path)
             # 2. CALL THE PYTORCH ENGINE (Your predictor.py script!)
             result = analyze_drawing(full_temp_path, test_type)
 
@@ -173,12 +173,8 @@ class ParkinsonTestAnalysisView(APIView):
                 model_version=result["model_version"],
             )
             
-            # Clean up the temporary file
-            if os.path.exists(full_temp_path):
-                os.remove(full_temp_path)
-            
             # 4. Return the calculated score back to the Android screen
-                return Response({
+            return Response({
                 "success": True,
                 "data": {
                     "id": test_record.id,
@@ -226,7 +222,48 @@ class ParkinsonTestAnalysisView(APIView):
             {"error": "Missing weight metrics for 'spiral' at /weights/siamese_spiral.pth"}
 
             It saves you from having to remote into your server, dig through hundreds of lines of terminal logs, and guess what went wrong. The server tells you exactly what line to fix!"""    
+        except InvalidImageError:
+            return Response(
+                {"error": "Could not read the image. Send a JPG or PNG drawing."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            if os.path.exists(full_temp_path):
+            logger.exception("Writing test processing failed")
+            message = str(e) if settings.DEBUG else "Processing failed"
+            return Response({"error": message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            if full_temp_path and os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class WritingHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        test_type = request.query_params.get("test_type")
+        if test_type not in dict(DailyWritingTest.TEST_TYPE_CHOICES):
+            return Response({"error": "test_type must be 'spiral' or 'meander'"}, status=status.HTTP_400_BAD_REQUEST)
+        days = request.query_params.get("days")
+        since = None
+        if days is not None:
+            try:
+                days = int(days)
+            except (TypeError, ValueError):
+                return Response({"error": "days must be an integer from 1 to 3650"}, status=status.HTTP_400_BAD_REQUEST)
+            if not 1 <= days <= 3650:
+                return Response({"error": "days must be an integer from 1 to 3650"}, status=status.HTTP_400_BAD_REQUEST)
+            from django.utils import timezone
+            from datetime import timedelta
+            since = timezone.now() - timedelta(days=days)
+        try:
+            patient = request.user.patient_profile
+        except Patient.DoesNotExist:
+            history = build_history([], since=since)
+        else:
+            rows = list(
+                DailyWritingTest.objects.filter(patient=patient, test_type=test_type)
+                .order_by("created_at")
+                .values("id", "created_at", "stability_score", "distance", "embedding")
+            )
+            history = build_history(rows, since=since)
+        return Response({"test_type": test_type, **history})
