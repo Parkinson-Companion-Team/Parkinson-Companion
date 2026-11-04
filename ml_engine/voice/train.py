@@ -170,7 +170,7 @@ if __name__ == "__main__":
         healthy_dir="ml_engine/data/raw/healthy_voice",
         pd_dir="ml_engine/data/raw/parkinsons_voice",
         train_pairs_count=800,
-        val_pairs_count=200,
+        test_pairs_count=200,
     )
     train(train_pairs, val_pairs, epochs=50, batch_size=8)
 # -------------------------------------------------------------------------

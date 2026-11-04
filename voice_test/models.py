@@ -32,10 +32,16 @@ class VoiceTestResult(models.Model):
 
 
 class PatientVoiceBaseline(models.Model):
-    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name="voice_baseline")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="voice_baselines")
+    task_type = models.CharField(max_length=10, choices=VoiceTestResult.TASK_CHOICES, default="vowel")
     embedding = models.JSONField()
     model_version = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["patient", "task_type"], name="unique_patient_voice_task_baseline"),
+        ]
 
     def __str__(self):
         return f"Baseline for {self.patient} ({self.created_at.date()})"

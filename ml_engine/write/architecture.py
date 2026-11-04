@@ -37,7 +37,7 @@ class HandwritingFeatureExtractor(nn.Module):
     The Base CNN: This acts as the 'twin'. 
     It takes a 224x224 grayscale image and shrinks it into a 128-number feature vector.
     """
-    def __init__(self):
+    def __init__(self, norm="batch"):
         # super():
         # TAKES: The child class and the instance (self).
         # RETURNS: A proxy object that allows you to call methods of the parent class (nn.Module), initializing the base class.
@@ -46,6 +46,7 @@ class HandwritingFeatureExtractor(nn.Module):
         # nn.Sequential():
         # TAKES: A comma-separated sequence of PyTorch neural network modules.
         # RETURNS: A container module that passes the data through each layer sequentially in the exact order they are defined.
+        norm_layer = nn.BatchNorm2d if norm == "batch" else nn.GroupNorm
         self.cnn = nn.Sequential(
             # nn.Conv2d():
             # TAKES: in_channels (1 for grayscale), out_channels (32 filters), kernel_size (5x5 grid), stride (1 means move 1 column at a time), and padding (2).
@@ -55,7 +56,7 @@ class HandwritingFeatureExtractor(nn.Module):
             # nn.BatchNorm2d():
             # TAKES: num_features (32 channels matching the output of the previous Conv2d layer).
             # RETURNS: A layer that normalizes the batch data to have a mean of 0 and variance of 1, speeding up and stabilizing training.
-            nn.BatchNorm2d(32),
+            norm_layer(32, 32) if norm == "group" else norm_layer(32),
             
             # nn.ReLU():
             # TAKES: inplace boolean (if True, it modifies the data directly in memory rather than creating a copy).
@@ -68,12 +69,12 @@ class HandwritingFeatureExtractor(nn.Module):
             nn.MaxPool2d(2, 2), # Image becomes 112x112
             
             nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
+            norm_layer(8, 64) if norm == "group" else norm_layer(64),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2), # Image becomes 56x56
             
             nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
+            norm_layer(8, 128) if norm == "group" else norm_layer(128),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2)  # Image becomes 28x28
         )
@@ -132,11 +133,11 @@ class SiameseParkinsonNetwork(nn.Module):
     """
     The Siamese Wrapper: This holds the two identical twin CNNs.
     """
-    def __init__(self):
+    def __init__(self, norm="batch"):
         super(SiameseParkinsonNetwork, self).__init__()
         # We instantiate the feature extractor ONCE. 
         # Both images will pass through this exact same network (sharing weights).
-        self.twin_cnn = HandwritingFeatureExtractor()
+        self.twin_cnn = HandwritingFeatureExtractor(norm=norm)
 
     def forward(self, image_yesterday, image_today):
         batch_size = image_yesterday.size(0)

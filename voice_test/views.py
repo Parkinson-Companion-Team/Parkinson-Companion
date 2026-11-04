@@ -8,9 +8,13 @@
 
 import os
 import tempfile
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from writing_test.models import Patient
 
 from voice_test.models import VoiceTestResult
 from ml_engine.voice.inference import run_voice_inference
@@ -24,8 +28,10 @@ from ml_engine.voice.anchor import get_or_create_baseline, get_recent_mean_embed
 # -------------------------------------------------------------------------
 
 
-@csrf_exempt  # Android app posts here directly; revisit with token auth before production
-@login_required
+@api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def upload_voice_test(request):
 # -------------------------------------------------------------------------
 # EXPLANATION FOR FUNCTION SETUP & SECURITY:
@@ -37,16 +43,13 @@ def upload_voice_test(request):
 # -------------------------------------------------------------------------
 
 
-    if request.method != "POST":
-        return JsonResponse({"error": "POST required"}, status=405)
-
     audio_file = request.FILES.get("audio")
-    task_type = request.POST.get("task_type")
+    task_type = request.data.get("task_type")
 
     if not audio_file:
-        return JsonResponse({"error": "No audio file provided"}, status=400)
+        return Response({"error": "No audio file provided"}, status=status.HTTP_400_BAD_REQUEST)
     if task_type not in dict(VoiceTestResult.TASK_CHOICES):
-        return JsonResponse({"error": "Invalid or missing task_type"}, status=400)
+        return Response({"error": "Invalid or missing task_type"}, status=status.HTTP_400_BAD_REQUEST)
 # -------------------------------------------------------------------------
 # EXPLANATION FOR DATA VALIDATION:
 # Takes: The incoming `request` data.
@@ -57,7 +60,7 @@ def upload_voice_test(request):
 # -------------------------------------------------------------------------
 
 
-    patient = request.user.patient_profile
+    patient, _ = Patient.objects.get_or_create(user=request.user)
 
     # Save to a temp file — inference functions expect a file path, not an in-memory upload
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
@@ -76,8 +79,8 @@ def upload_voice_test(request):
 
 
     try:
-        baseline_embedding = get_or_create_baseline(patient, temp_path)
-        recent_mean_embedding = get_recent_mean_embedding(patient, days=30)
+        baseline_embedding, created = get_or_create_baseline(patient, task_type, temp_path)
+        recent_mean_embedding = get_recent_mean_embedding(patient, task_type, days=30)
 
         result = run_voice_inference(
             audio_path=temp_path,
@@ -122,10 +125,11 @@ def upload_voice_test(request):
         if "stability_vs_recent" in result:
             response_data["stability_vs_recent"] = result["stability_vs_recent"]
 
-        return JsonResponse(response_data, status=201)
+        response_data["baseline_created"] = created
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return JsonResponse({"error": f"Processing failed: {str(e)}"}, status=500)
+    except Exception:
+        return Response({"error": "Processing failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # -------------------------------------------------------------------------
 # EXPLANATION FOR RESPONSE:
 # Takes: The saved test result data.

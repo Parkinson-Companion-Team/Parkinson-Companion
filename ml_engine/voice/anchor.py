@@ -22,22 +22,23 @@ from ml_engine.voice.inference import compute_embedding, MODEL_VERSION
 # -------------------------------------------------------------------------
 
 
-def get_or_create_baseline(patient, audio_path: str) -> torch.Tensor:
+def get_or_create_baseline(patient, task_type: str, audio_path: str):
     """
     Fetches the patient's stored baseline embedding, or creates one
     if this is their first-ever voice test.
     """
     try:
-        baseline_record = PatientVoiceBaseline.objects.get(patient=patient)
-        return torch.tensor(baseline_record.embedding)
+        baseline_record = PatientVoiceBaseline.objects.get(patient=patient, task_type=task_type)
+        return torch.tensor(baseline_record.embedding), False
     except PatientVoiceBaseline.DoesNotExist:
         embedding = compute_embedding(audio_path)
         PatientVoiceBaseline.objects.create(
             patient=patient,
+            task_type=task_type,
             embedding=embedding.tolist(),
             model_version=MODEL_VERSION,
         )
-        return embedding
+        return embedding, True
 # -------------------------------------------------------------------------
 # EXPLANATION FOR get_or_create_baseline:
 # Takes: `patient` (the database profile) and `audio_path` (string to the .wav file).
@@ -50,7 +51,7 @@ def get_or_create_baseline(patient, audio_path: str) -> torch.Tensor:
 # -------------------------------------------------------------------------
 
 
-def get_recent_mean_embedding(patient, days: int = 30) -> torch.Tensor:
+def get_recent_mean_embedding(patient, task_type: str, days: int = 30) -> torch.Tensor:
     """
     Computes the mean embedding across a patient's tests in the last
     N days, for short-term trend comparison. Returns None if there
@@ -59,7 +60,7 @@ def get_recent_mean_embedding(patient, days: int = 30) -> torch.Tensor:
     past_data_embd=[]
     cutoff = timezone.now() - timedelta(days=days)
     recent_results = VoiceTestResult.objects.filter(
-        patient=patient, created_at__gte=cutoff
+        patient=patient, task_type=task_type, created_at__gte=cutoff
     )
 
     if not recent_results.exists():
