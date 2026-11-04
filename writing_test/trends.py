@@ -25,6 +25,7 @@ def euclidean(a, b):
 def build_history(rows, baseline_sessions=BASELINE_SESSIONS, alpha=EWMA_ALPHA, since=None):
     baseline_rows = [row for row in rows if row.get("embedding") is not None][:baseline_sessions]
     baseline_ready = len(baseline_rows) >= baseline_sessions
+    baseline_ids = {row["id"] for row in baseline_rows}
     baseline = mean_embedding([row["embedding"] for row in baseline_rows]) if baseline_rows else None
     baseline_noise = (
         float(np.mean([euclidean(row["embedding"], baseline) for row in baseline_rows]))
@@ -39,7 +40,7 @@ def build_history(rows, baseline_sessions=BASELINE_SESSIONS, alpha=EWMA_ALPHA, s
             "stability_score": row["stability_score"],
             "distance": row["distance"],
             "personal_distance": personal_distance,
-            "is_baseline": row in baseline_rows,
+            "is_baseline": row["id"] in baseline_ids,
         }
         points.append(point)
     stability = ewma([point["stability_score"] for point in points], alpha)
@@ -73,5 +74,4 @@ def build_history(rows, baseline_sessions=BASELINE_SESSIONS, alpha=EWMA_ALPHA, s
         "points": points,
         "weekly": weekly,
     }
-
 
