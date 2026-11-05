@@ -1,0 +1,18 @@
+Django>=6.0,<7
+djangorestframework
+django-cors-headers
+pillow
+numpy
+pandas
+scikit-learn
+xgboost
+joblib
+librosa
+praat-parselmouth
+soundfile
+opencv-python-headless
+torch
+torchvision
+torchaudio
+
+# CPU-only PyTorch: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
