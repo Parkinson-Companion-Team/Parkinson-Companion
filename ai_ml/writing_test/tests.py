@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import skipUnless
+from unittest import skipUnless
 import cv2
 import numpy as np
 from ml_engine.write.preprocess import InvalidImageError, clean_and_threshold_image

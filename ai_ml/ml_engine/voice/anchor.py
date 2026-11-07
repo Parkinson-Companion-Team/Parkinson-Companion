@@ -70,7 +70,7 @@ def get_recent_mean_embedding(patient, task_type: str, days: int = 30) -> torch.
         return None
     for r in recent_results:
     # Append modifies the list in place; do not assign it to a new variable
-        past_data_embd.append(torch.tensor(r.embedding))
+        past_data_embd.append(torch.tensor(r.embedding, dtype=torch.float32))
     
 # Execute the stack and mean calculations only after the loop finishes all items
     stacked = torch.stack(past_data_embd)
