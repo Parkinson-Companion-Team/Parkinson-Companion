@@ -14,10 +14,10 @@ mobile-app/.externalNativeBuild
 mobile-app/.cxx
 mobile-app/local.properties
 
-ai-ml/.venv/
-ai-ml/db.sqlite3
-ai-ml/media/
-ai-ml/ml_engine/data/
-ai-ml/**/__pycache__/
-ai-ml/.env
-ai-ml/.env.*
+ai_ml/.venv/
+ai_ml/db.sqlite3
+ai_ml/media/
+ai_ml/ml_engine/data/
+ai_ml/**/__pycache__/
+ai_ml/.env
+ai_ml/.env.*

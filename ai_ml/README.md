@@ -2,9 +2,12 @@
 
 ## Setup
 
+Run the following commands from inside `ai_ml`:
+
 Create and activate a virtual environment:
 
 ```powershell
+cd ai_ml
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
