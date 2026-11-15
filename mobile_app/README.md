@@ -8,5 +8,6 @@ the development laptop. For a real phone, change the base URL in
 the same Wi-Fi network, and run Django with:
 
 ```powershell
+cd ai_ml
 python manage.py runserver 0.0.0.0:8000
 ```
