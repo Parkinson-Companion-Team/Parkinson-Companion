@@ -93,7 +93,7 @@ class ParkinsonSiameseDataset(Dataset):
                  patient_ids=None, fixed_pairs=False, seed=42, cache=True):
         # os.path.join():
         # TAKES: Two or more strings representing folder/file names.
-        # RETURNS: A single concatenated string with correct OS-specific slashes (e.g., 'data/raw\spiral').
+        # RETURNS: A single concatenated string with correct OS-specific slashes (e.g., 'data/write\spiral').
         self.base_dir = os.path.join(img_dir, subfolder)
         self.patient_ids = patient_ids      # None = use everyone, or a set like {"H1", "P4"}
         self.fixed_pairs = fixed_pairs      # True for validation: same pairs every epoch

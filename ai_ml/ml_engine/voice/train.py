@@ -147,8 +147,8 @@ if __name__ == "__main__":
     random.seed(42)
     torch.manual_seed(42)
     train_pairs, val_pairs = build_train_val_pairs(
-        healthy_dir=os.path.join(DATA_DIR, "raw", "healthy_voice"),
-        pd_dir=os.path.join(DATA_DIR, "raw", "parkinsons_voice"),
+        healthy_dir=os.path.join(DATA_DIR, "voice", "healthy_voice"),
+        pd_dir=os.path.join(DATA_DIR, "voice", "parkinsons_voice"),
         train_pairs_count=args.train_pairs,
         test_pairs_count=args.val_pairs,
     )

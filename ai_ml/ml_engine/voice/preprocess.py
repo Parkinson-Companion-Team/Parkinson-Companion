@@ -204,5 +204,5 @@ def preprocess_audio(audio_path: str) -> torch.Tensor:
 
 
 if __name__ == "__main__": #means "only run this block if I'm the file being directly executed, not if someone is just importing me."
-    mel = preprocess_audio("data/raw/voice_sample/file_example_WAV_1MG.wav")  # relative to project root
+    mel = preprocess_audio("data/voice/healthy_voice/healthy_000.wav")  # relative to project root
     print(mel.shape)

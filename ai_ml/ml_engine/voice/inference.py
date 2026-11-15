@@ -224,7 +224,7 @@ if __name__ == "__main__":
     model = SiameseVoiceNet(embedding_dim=EMBEDDING_DIM)
     model.eval()  # random weights, untrained — that's fine for this test
 
-    mel_spec = preprocess_audio("data/raw/voice_sample/file_example_WAV_1MG.wav")
+    mel_spec = preprocess_audio("data/voice/healthy_voice/healthy_000.wav")
     mel_spec = mel_spec.unsqueeze(0)
 
     with torch.no_grad():

@@ -49,7 +49,9 @@ python -m ml_engine.write.calibrate --type spiral
 ```
 
 Replace `spiral` with `meander` as needed. The dataset belongs in
-`/ai_ml/ml_engine/data/` and is intentionally ignored by Git. The API accepts
+`/ai_ml/ml_engine/data/` and is intentionally ignored by Git. Drawing data is
+stored under `/ai_ml/ml_engine/data/write/`, while voice data is stored under
+`/ai_ml/ml_engine/data/voice/`. The API accepts
 authenticated requests at `/api-token-auth/`, `/writing-test/analyze/`, and
 `/writing-test/history/`.
 

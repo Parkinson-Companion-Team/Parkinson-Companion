@@ -80,7 +80,7 @@ from ml_engine.write.architecture import SiameseParkinsonNetwork
 # Folders are built from THIS file's location, so the script works no matter which
 # folder you run it from, and the weights land exactly where predictor.py looks for them.
 WRITE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../ml_engine/write
-DATA_DIR = os.path.normpath(os.path.join(WRITE_DIR, "..", "data"))  # .../ml_engine/data
+DATA_DIR = os.path.normpath(os.path.join(WRITE_DIR, "..", "data", "write"))  # .../ml_engine/data/write
 WEIGHTS_DIR = os.path.join(WRITE_DIR, "weights")                 # .../ml_engine/write/weights
 
 class ContrastiveLoss(nn.Module):

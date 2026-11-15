@@ -38,7 +38,7 @@ def build_csv(healthy_dir: str, pd_dir: str, output_csv: str):
 
 if __name__ == "__main__":
     build_csv(
-        healthy_dir="ml_engine/data/raw/healthy_voice",
-        pd_dir="ml_engine/data/raw/parkinsons_voice",
-        output_csv="ml_engine/data/voice_features.csv",
+        healthy_dir="ml_engine/data/voice/healthy_voice",
+        pd_dir="ml_engine/data/voice/parkinsons_voice",
+        output_csv="ml_engine/data/voice/voice_features.csv",
     )

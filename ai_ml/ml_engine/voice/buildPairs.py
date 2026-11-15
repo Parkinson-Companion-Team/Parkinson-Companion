@@ -110,7 +110,7 @@ def build_train_val_pairs(
 
 if __name__ == "__main__":
     train_pairs, val_pairs = build_train_val_pairs(
-        healthy_dir=os.path.join(VOICE_DIR, "..", "data", "raw", "healthy_voice"),
-        pd_dir=os.path.join(VOICE_DIR, "..", "data", "raw", "parkinsons_voice"),
+        healthy_dir=os.path.join(VOICE_DIR, "..", "data", "voice", "healthy_voice"),
+        pd_dir=os.path.join(VOICE_DIR, "..", "data", "voice", "parkinsons_voice"),
     )
     print(f"Train pairs: {len(train_pairs)}, Validation pairs: {len(val_pairs)}")

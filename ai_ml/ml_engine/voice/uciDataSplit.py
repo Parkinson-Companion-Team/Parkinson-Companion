@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 
-train_df = pd.read_csv("ml_engine/data/raw/uci_voice_train_data.txt", header=None)
-test_df = pd.read_csv("ml_engine/data/raw/uci_voice_test_data.txt", header=None)
+train_df = pd.read_csv("ml_engine/data/voice/uci_voice_train_data.txt", header=None)
+test_df = pd.read_csv("ml_engine/data/voice/uci_voice_test_data.txt", header=None)
 
 # Combine everything into one pool — we're going to make our own honest split
 combined_df = pd.concat([train_df, test_df], ignore_index=True)

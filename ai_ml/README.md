@@ -18,8 +18,11 @@ python manage.py migrate
 The dataset is git-ignored and uses:
 
 ```text
-ml_engine/data/<spiral|meander>/<healthy*|patient*>/<name>-<ID>.jpg
+ml_engine/data/write/<spiral|meander>/<healthy*|patient*>/<name>-<ID>.jpg
 ```
+
+Drawing data is stored under `ml_engine/data/write/`, and voice data is stored
+under `ml_engine/data/voice/`.
 
 ## Models
 

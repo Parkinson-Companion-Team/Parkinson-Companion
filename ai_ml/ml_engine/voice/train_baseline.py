@@ -187,6 +187,6 @@ def train_baseline(csv_path: str, model_output_path: str):
 # -------------------------------------------------------------------------
 if __name__ == "__main__":
     train_baseline(
-        csv_path="ml_engine/data/voice_features.csv",
+        csv_path="ml_engine/data/voice/voice_features.csv",
         model_output_path="ml_engine/voice/weights/xgboost_baseline.pkl",
     )
