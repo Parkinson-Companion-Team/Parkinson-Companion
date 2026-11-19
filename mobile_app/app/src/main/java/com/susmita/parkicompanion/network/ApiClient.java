@@ -17,7 +17,7 @@ public final class ApiClient {
 
     // The Android emulator reaches the development server through 10.0.2.2.
     // For a real phone, use the laptop's LAN IP and keep both devices on the same Wi-Fi.
-    public static final String BASE_URL = "http://10.0.2.2:8000";
+    public static final String BASE_URL = "http://127.0.0.1:8000";
     private static final String AUTH_FILE = "auth";
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)

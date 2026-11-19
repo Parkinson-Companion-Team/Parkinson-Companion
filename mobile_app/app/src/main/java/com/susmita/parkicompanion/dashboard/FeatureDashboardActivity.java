@@ -17,6 +17,7 @@ import com.susmita.parkicompanion.diet.ui.DietTrackerActivity;
 import com.susmita.parkicompanion.medicine.ui.MedicineListActivity;
 import com.susmita.parkicompanion.todo.ui.TodoSplashActivity;
 import com.susmita.parkicompanion.assessment.HandwritingTestActivity;
+import com.susmita.parkicompanion.assessment.VoiceTestActivity;
 
 public class FeatureDashboardActivity extends AppCompatActivity {
 
@@ -96,7 +97,18 @@ public class FeatureDashboardActivity extends AppCompatActivity {
         }
 
         // Row 4: Voice Test | Tremor Test
-        setupCard(R.id.cardVoice, "🎙️ Voice Test", "Vocal acoustics and speech pattern analysis for phonation health.");
+        View cardVoice = findViewById(R.id.cardVoice);
+        if (cardVoice != null) {
+            cardVoice.setOnClickListener(v -> new AlertDialog.Builder(this)
+                    .setTitle("Voice Test")
+                    .setItems(new String[]{"Sustained vowel", "Pa-ta-ka", "Reading"}, (dialog, which) -> {
+                        Intent intent = new Intent(this, VoiceTestActivity.class);
+                        intent.putExtra("task_type", which == 0 ? "vowel" : which == 1 ? "ddk" : "reading");
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Close", null)
+                    .show());
+        }
         setupCard(R.id.cardTremor, "🤲 Tremor Test", "Accelerometer-based tremor and motor fluctuation detection.");
 
         // Row 5: Progress Tracking | AI Assistant

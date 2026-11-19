@@ -165,7 +165,7 @@
                 android:focusable="true"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="🎙️\nVoice Test\nComing soon"
+                android:text="🎙️\nVoice Test"
                 android:textColor="#244C43"
                 android:textSize="17sp" />
 

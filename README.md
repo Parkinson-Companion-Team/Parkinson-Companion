@@ -6,10 +6,10 @@ Final-year group project, Brainware University, Year 4
 
 ## Team
 
-| Module | Folder | Contributor |
-|---|---|---|
-| Mobile app (frontend) | /mobile_app | Susmita Biswas (@Suhasini100) |
-| AI/ML models & API | /ai_ml | Jotirmoy Mondal (@Jotirmoy-Mondal) |
+| Module                | Folder      | Contributor                        |
+| --------------------- | ----------- | ---------------------------------- |
+| Mobile app (frontend) | /mobile_app | Susmita Biswas (@Suhasini100)      |
+| AI/ML models & API    | /ai_ml      | Jotirmoy Mondal (@Jotirmoy-Mondal) |
 
 ## How the two parts connect
 

@@ -120,6 +120,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".assessment.VoiceTestActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".auth.SignUpActivity"
             android:exported="false" />
 
